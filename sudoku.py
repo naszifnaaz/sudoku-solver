@@ -1,83 +1,64 @@
-# Sample board
-board = [
-    [7, 8, 0, 4, 0, 0, 1, 2, 0],
-    [6, 0, 0, 0, 7, 5, 0, 0, 9],
-    [0, 0, 0, 6, 0, 1, 0, 7, 8],
-    [0, 0, 7, 0, 4, 0, 2, 6, 0],
-    [0, 0, 1, 0, 5, 0, 9, 3, 0],
-    [9, 0, 4, 0, 6, 0, 0, 0, 5],
-    [0, 7, 0, 3, 0, 0, 0, 1, 2],
-    [1, 2, 0, 0, 0, 7, 4, 0, 0],
-    [0, 4, 9, 2, 0, 6, 0, 0, 7]
-]
+# Sudoku game using pycharm
+
+import pygame
+from solver import solve, valid
+import time
+pygame.font.init()
 
 
-# Printing board
-def print_board(board):
-    for i in range(len(board)):
-        if i % 3 == 0 and i != 0:
-            print("- - - - - - - - - - - - - ")
-        for j in range(len(board[0])):
-            if j % 3 == 0 and j != 0:
-                print(" | ", end="")
-            if j == 8:
-                print(board[i][j])
-            else:
-                print(str(board[i][j])+" ", end="")
+class Grid:
+    board = [
+        [7, 8, 0, 4, 0, 0, 1, 2, 0],
+        [6, 0, 0, 0, 7, 5, 0, 0, 9],
+        [0, 0, 0, 6, 0, 1, 0, 7, 8],
+        [0, 0, 7, 0, 4, 0, 2, 6, 0],
+        [0, 0, 1, 0, 5, 0, 9, 3, 0],
+        [9, 0, 4, 0, 6, 0, 0, 0, 5],
+        [0, 7, 0, 3, 0, 0, 0, 1, 2],
+        [1, 2, 0, 0, 0, 7, 4, 0, 0],
+        [0, 4, 9, 2, 0, 6, 0, 0, 7]
+    ]
 
+    def __init__(self, rows, cols, width, height):
+        self.rows = rows
+        self.cols = cols
+        self.cubes = [[Cube(self.board[i][j], i, j, width, height)
+                       for j in range(cols)] for i in range(rows)]
+        self.width = width
+        self.height = height
+        self.model = None
+        self.selected = None
 
-# Finding empty grid and returning its index
-def find_empty(bo):
-    for i in range(len(bo)):
-        for j in range(len(bo[0])):
-            if bo[i][j] == 0:
-                return (i, j)
+    def update_model(self):
+        self.model = [[self.cubes[i][j].value for j in range(
+            self.cols)] for i in range(self.rows)]
 
+    def place(self, val):
+        row, col = self.selected
+        if self.cubes[row][col] == 0:
+            self.cubes[row][col].set(val)
+            self.update_model
 
-# Checking for Valid solution
-def valid(bo, num, pos):
-    # Check Rows
-    for i in range(len(bo[0])):
-        if bo[pos[0]][i] == num and pos[1] != i:
-            return False
-
-    # Check Column
-    for i in range(len(bo)):
-        if bo[i][pos[1]] == num and pos[0] != i:
-            return False
-
-    # Checking 3x3 grid
-    box_x = pos[0] // 3
-    box_y = pos[1] // 3
-
-    for i in range(box_x * 3, box_x * 3 + 3):
-        for j in range(box_y * 3, box_y * 3 + 3):
-            if bo[i][j] == num and (i, j) != pos:
-                return False
-    return True
-
-
-# Backtracking algorithm to solve puzzle
-def solve(bo):
-    find = find_empty(bo)
-    if not find:
-        return True
-    else:
-        row, col = find
-
-    for i in range(1, 10):
-        if valid(bo, i, (row, col)):
-            bo[row][col] = i
-
-            if solve(bo):
+            if valid(self.model, val, (row, col)) and solve(self.model):
                 return True
-            bo[row][col] = 0
-    return False
+            else:
+                self.cubes[row][col].set(0)
+                self.cubes[row][col].set_temp(0)
+                return False
 
+    def sketch(self, val):
+        row, col = self.selected
+        self.cubes[row][col].set_temp(val)
 
-print_board(board)
-solve(board)
-print("\n")
-print("Solved! ")
-print("\n")
-print_board(board)
+    # Drawing grid
+    def draw(self, win):
+        gap = self.width / 9
+        for i in range(self.row + 1):
+            if i % 3 == 0 and i != 0:
+                thick = 4
+            else:
+                thick = 1
+            pygame.draw.line(win, (0, 0, 0), (0, i * gap),
+                             (self.width, i * gap), thick)
+            pygame.draw.line(win, (0, 0, 0), (i * gap, 0),
+                             (i * gap, self.height), thick)
