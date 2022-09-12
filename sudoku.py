@@ -240,9 +240,9 @@ def valid(bo, num, pos):
 def redraw_window(win, board, time, strikes):
     win.fill((255,255,255))
     # Draw time
-    fnt = pygame.font.SysFont("comicsans", 40)
-    text = fnt.render("Time: " + format_time(time), 1, (0,0,0))
-    win.blit(text, (540 - 160, 560))
+    fnt = pygame.font.SysFont("Bauhaus 93", 40)
+    text = fnt.render("Timer: " + format_time(time), 1, (0,0,0))
+    win.blit(text, (540 - 275, 560))
     # Draw Strikes
     text = fnt.render("X " * strikes, 1, (255, 0, 0))
     win.blit(text, (20, 560))
@@ -255,12 +255,12 @@ def format_time(secs):
     minute = secs//60
     hour = minute//60
 
-    mat = " " + str(minute) + ":" + str(sec)
+    mat = " " + str(minute) + "min : " + str(sec) + "sec"
     return mat
 
 # Main function
 def main():
-    win = pygame.display.set_mode((540, 620))
+    win = pygame.display.set_mode((540, 600))
     pygame.display.set_caption("Sudoku")
     gameicon = pygame.image.load('assets/gameicon.png').convert_alpha()
     pygame.display.set_icon(gameicon)
