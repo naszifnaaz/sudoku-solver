@@ -1,7 +1,6 @@
 # Sudoke game using pygame
 import pygame
 import time
-from solver import solve, valid, find_empty
 pygame.font.init()
 
 # Grid
@@ -29,9 +28,11 @@ class Grid:
         self.selected = None
         self.win = win
 
+    # Updating sudoku state
     def update_model(self):
         self.model = [[self.cubes[i][j].value for j in range(self.cols)] for i in range(self.rows)]
 
+    # Confirm input on a grid
     def place(self, val):
         row, col = self.selected
         if self.cubes[row][col].value == 0:
@@ -46,10 +47,12 @@ class Grid:
                 self.update_model()
                 return False
 
+    # Temporary input on a grid
     def sketch(self, val):
         row, col = self.selected
         self.cubes[row][col].set_temp(val)
 
+    # Rendering sudoku board
     def draw(self):
         # Draw Grid Lines
         gap = self.width / 9
@@ -58,7 +61,7 @@ class Grid:
                 thick = 4
             else:
                 thick = 1
-            pygame.draw.line(self.win, (0, 0, 0), (0, i*gap),(self.width, i*gap), thick)
+            pygame.draw.line(self.win, (0, 0, 0), (0, i * gap),(self.width, i * gap), thick)
             pygame.draw.line(self.win, (0, 0, 0), (i * gap, 0),(i * gap, self.height), thick)
 
         # Draw Cubes
@@ -76,18 +79,14 @@ class Grid:
         self.cubes[row][col].selected = True
         self.selected = (row, col)
 
-    # Clear cell
+    # Clearing input on cells
     def clear(self):
         row, col = self.selected
         if self.cubes[row][col].value == 0:
             self.cubes[row][col].set_temp(0)
 
-    # Clicking on a cell
+    # Selecting  a cell
     def click(self, pos):
-        """
-        :param: pos
-        :return: (row, col)
-        """
         if pos[0] < self.width and pos[1] < self.height:
             gap = self.width / 9
             x = pos[0] // gap
@@ -103,6 +102,7 @@ class Grid:
                     return False
         return True
 
+    # Backtracking algorithm to solve the board recursively
     def solve(self):
         find = find_empty(self.model)
         if not find:
@@ -121,6 +121,7 @@ class Grid:
 
         return False
 
+    # Solving sudoku on call (GUI)
     def solve_gui(self):
         self.update_model()
         find = find_empty(self.model)
@@ -151,7 +152,7 @@ class Grid:
         return False
 
 
-# Cubes
+# Drawing cubes and values
 class Cube:
     rows = 9
     cols = 9
@@ -248,7 +249,7 @@ def redraw_window(win, board, time, strikes):
     # Draw grid and board
     board.draw()
 
-
+# Timer
 def format_time(secs):
     sec = secs%60
     minute = secs//60
@@ -259,8 +260,10 @@ def format_time(secs):
 
 # Main function
 def main():
-    win = pygame.display.set_mode((540, 600))
+    win = pygame.display.set_mode((540, 620))
     pygame.display.set_caption("Sudoku")
+    gameicon = pygame.image.load('assets/gameicon.png').convert_alpha()
+    pygame.display.set_icon(gameicon)
     board = Grid(9, 9, 540, 540, win)
     key = None
     run = True
@@ -291,6 +294,8 @@ def main():
                     key = 8
                 if event.key == pygame.K_9:
                     key = 9
+                
+                # Adding numpad keys
                 if event.key == pygame.K_KP1:
                     key = 1
                 if event.key == pygame.K_KP2:
@@ -327,7 +332,8 @@ def main():
 
                         if board.is_finished():
                             print("Game over")
-
+            
+            # Collission detection on cells
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 clicked = board.click(pos)
